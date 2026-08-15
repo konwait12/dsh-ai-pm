@@ -304,7 +304,7 @@ def review(req_dir: Path, item: dict, decision: str, reviewer: str, reviewer_id:
     if not artifact:
         print("ERROR: artifact not found", file=sys.stderr)
         return 1
-    current_status = re.search(r"(?m)^status:\s*(\S+)", artifact.read_text(encoding="utf-8"))
+    current_status = re.search(r"(?m)^status:\s*[\"']?([\w-]+)", artifact.read_text(encoding="utf-8"))
     current_status = current_status.group(1) if current_status else "unknown"
     if decision == "approve" and current_status != "ready_for_human_review":
         print(f"ERROR: approval requires ready_for_human_review, got {current_status}", file=sys.stderr)
@@ -654,7 +654,7 @@ def main() -> int:
                 dart = find_artifact(args.req_dir, downstream)
                 if dart:
                     text = dart.read_text(encoding="utf-8")
-                    fm = re.search(r"(?m)^status:\s*(\S+)", text)
+                    fm = re.search(r"(?m)^status:\s*[\"']?([\w-]+)", text)
                     status = fm.group(1) if fm else "unknown"
                     if status in ("confirmed", "ready_for_human_review"):
                         action = "superseded" if args.apply else "will become superseded on apply"
