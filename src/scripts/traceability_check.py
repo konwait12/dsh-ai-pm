@@ -17,7 +17,7 @@ from workflow_registry import find_artifact, work_items
 FAMILY = "traceability"
 
 PATTERNS = {
-    "goal": r"\bG\d+\b",
+    "goal": r"\bG\d+[a-z]?\b",
     "story": r"\bST-\d+\b",
     "feature": r"\bFEA-\d+\b",
     "function": r"\bFUN-\d+\b",

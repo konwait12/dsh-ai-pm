@@ -175,42 +175,42 @@ def verify_anchor_chain(req_dir: Path) -> dict:
 
 def verify_artifact_anchored(req_dir: Path, artifact: str, expected_sha256: str,
                              expected_reviewer: str) -> dict:
-    """Confirm ``artifact`` has at least one matching anchor row.
+    """Confirm ``artifact``'s LATEST anchor row matches the expected sha/reviewer.
 
     Returns ``{ok, anchored, mismatches, missing_anchor}``:
 
-    - ``anchored`` is True if any row matches all of (artifact path,
-      expected_sha256, expected_reviewer).
-    - ``mismatches`` lists rows whose ``artifact`` path matches but whose
-      ``sha256`` or ``reviewer`` differs.
+    - ``anchored`` is True if the newest row for this artifact path matches
+      both expected_sha256 and expected_reviewer.
+    - ``mismatches`` contains at most one entry — the newest row — when its
+      sha256 or reviewer differs. Older rows anchor *previous* versions of the
+      artifact (re-review appends a new row and supersedes them), so they are
+      not treated as mismatches.
     - ``missing_anchor`` is True if no row references this artifact path.
     """
     rows = [r for r in _read_lines(req_dir) if not r.get("_corrupt")]
-    anchored = False
-    mismatches: list[dict] = []
-    referenced = False
-    for row in rows:
-        # Anchor rows record POSIX-style relative paths; normalize the caller's
-        # artifact path so Windows backslashes do not break the match.
-        if (row.get("artifact") or "") != artifact.replace("\\", "/"):
-            continue
-        referenced = True
-        sha_match = row.get("sha256") == expected_sha256
-        reviewer_match = row.get("reviewer") == expected_reviewer
-        if sha_match and reviewer_match:
-            anchored = True
-        else:
-            mismatches.append({
-                "row_index": rows.index(row),
-                "sha256_match": sha_match,
-                "reviewer_match": reviewer_match,
-                "row_sha256": row.get("sha256"),
-                "row_reviewer": row.get("reviewer"),
-            })
+    # Anchor rows record POSIX-style relative paths; normalize the caller's
+    # artifact path so Windows backslashes do not break the match.
+    normalized = artifact.replace("\\", "/")
+    matching = [r for r in rows if (r.get("artifact") or "") == normalized]
+    if not matching:
+        return {"ok": False, "anchored": False, "missing_anchor": True, "mismatches": []}
+    row = matching[-1]  # latest anchor row supersedes earlier versions
+    sha_match = row.get("sha256") == expected_sha256
+    reviewer_match = row.get("reviewer") == expected_reviewer
+    anchored = sha_match and reviewer_match
+    mismatches = []
+    if not anchored:
+        mismatches.append({
+            "row_index": rows.index(row),
+            "sha256_match": sha_match,
+            "reviewer_match": reviewer_match,
+            "row_sha256": row.get("sha256"),
+            "row_reviewer": row.get("reviewer"),
+        })
     return {
         "ok": anchored,
         "anchored": anchored,
-        "missing_anchor": not referenced,
+        "missing_anchor": False,
         "mismatches": mismatches,
     }
 
