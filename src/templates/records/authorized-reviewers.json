@@ -1,0 +1,9 @@
+{
+  "reviewers": [
+    {
+      "id": "replace-with-stable-user-id",
+      "name": "replace-with-reviewer-name",
+      "roles": ["business_owner"]
+    }
+  ]
+}

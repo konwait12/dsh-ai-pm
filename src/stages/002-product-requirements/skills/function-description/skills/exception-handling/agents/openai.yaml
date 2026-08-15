@@ -1,0 +1,25 @@
+interface:
+  display_name: "异常处理 (Exception Handling)"
+  short_description: "定义异常与恢复路径 EX-XXX（failure modes + user-visible recovery）。Sub-skill of function-description。"
+  default_prompt: |
+    Use the exception-handling sub-skill to enumerate failure modes for each
+    function, including system failures, business rejections, and external
+    dependencies. Specify the user-visible recovery path and retry/rollback
+    policy. Output a §Exception table with trigger, system response, and
+    user-visible action columns. Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to specify failure modes, error
+    handling, retry, rollback, or "异常处理" for a function set.
+  - |
+    Use this sub-skill when reviewing a function-description artifact that
+    has missing or weak §Exception sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for business policy logic (use
+    business-rules), validation logic (use validation-rules), or state
+    transitions (use state-machine).
+  - |
+    Do NOT use this sub-skill for happy-path-only specifications.

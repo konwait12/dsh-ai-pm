@@ -1,0 +1,146 @@
+# 状态语义矩阵
+
+> 本文档是产物状态机的**语义权威参考**：七种状态的定位、gate 行为与人工确认要求，全部以真实跑测案例（REQ-001~008）与现有代码行为（`dor_check.py` / `orchestrator.py` / `pipeline.py` / `branch_validator.py` / `run_tests_mac.sh` / `audit_log.py` / `projection_cache.py`）为证据，不臆测。
+>
+> 证据来源分层：① 行为定义源（`dor_check.py` / `orchestrator.py` / `pipeline.py` / `branch_validator.py`）——这些是 gate 与状态机的实际执行者；② 事件溯源源（`audit_log.py`）——append-only `.audit/events.jsonl` 是 review/change/confirm/reflow/init 生命周期的单一事实来源；③ 派生视图源（`projection_cache.py`）——从事件日志折叠出 `.audit/projection.json`，作为 validators 读取「最新 review record + hash」的统一入口（替代 glob+sort，对老案例带 warning fallback）。
+>
+> 相关概念：知识状态标签（FACT / DECISION / ASSUMPTION / AI_INFERENCE / UNKNOWN / CONFLICT）见 `src/framework/contracts.md`；状态枚举权威定义见 `src/templates/_frontmatter-schema.md` §2。
+
+---
+
+## 一、状态全景表（语义定位）
+
+产物状态机主干：`draft → needs_user_input / conditional_review / ready_for_human_review → confirmed`，`superseded`（失效）与 `simulated`（测试线专用）为特殊态。
+
+| 状态 | 定义 | 谁可设置 | knowledge_state 强制 | stage_closeup 强制 | 触发 trace 检查 | workflow_valid 影响 | 人工确认要求 |
+|---|---|---|---|---|---|---|---|
+| `draft` | AI 起草中，未形成候选 | AI | ❌ 不强制（跳过） | ❌ 不强制（送审才查） | ❌ 不触发 | 不算 active，不产生越级；作为首个未完成项会阻断流程推进（不阻塞上游） | 无 |
+| `needs_user_input` | 缺失关键信息 / 材料稀疏或冲突，需用户补充后才能继续 | AI | ❌ 不强制（跳过） | ❌ 不强制 | ❌ 不触发 | **active 态**：只能有一个 active；多个 active 会触发 invalid_active → `workflow_valid=false` | 无（等人工补充输入，不是评审确认） |
+| `conditional_review` | 有条件地可被审阅（非阻断 caveat 已显式登记） | AI | ❌ 不强制（跳过） | ❌ 不强制 | ❌ 不触发 | **active 态**：同上，单个时可与下游并存但上游未 confirmed 时 `workflow_valid=false` | 有条件评审（人工可按条件放行）；**非完成态** |
+| `ready_for_human_review` | AI 工作完成，形成候选，等待人工 review | AI | ✅ **强制**（六态全覆盖 + ASSUMPTION ≤ 30%，缺失即 FAIL） | ✅ **强制**（issue-record 收口行 + 待确认同行引用） | ✅ 触发（prd-assembly 时跑 RTM 正/反向追溯） | **active 态**：上游未 confirmed 时判为越级待审 → `workflow_valid=false`（越级待审卡点） | 必须：人工 `review --decision approve`（authorized-reviewers 匹配 + reviewer_roles 匹配）后才能 confirmed；`--yes` 只跑机器检查 |
+| `confirmed` | 人工已显式批准，正式交付基线 | **仅人工**（`pipeline.py review --decision approve` 且 reviewer 与 `00-input/authorized-reviewers.json` 匹配） | ⏸ 信息性（只记录六态计数与 ASSUMPTION 占比，不 FAIL，预期 AI_INFERENCE/ASSUMPTION/CONFLICT 已被推进/关闭） | ❌ 不强制（送审后不再查收口） | ✅ 触发 | confirmed/legacy_unverified 视为「已完成」，不参与越级判定；全部 confirmed → `workflow_valid=true`、`complete=true` | 有（这是唯一完成态；ReviewRecord 绑定 reviewer/reviewed_at/artifact hash，hash 不符即 CRITICAL） |
+| `superseded` | 被更新的确认版本/变更回流替代，必须重新校验 | 人工（reflow --apply 由机器执行，语义上代表人工发起的变更） | ❌ 不强制（跳过） | ❌ 不强制 | ❌ 不触发 | 视为「待重跑」：会成为 next_work_item，其下游保持 DoR 阻断直到重新 confirmed | 无（终态之一，需经 reflow 重新走确认） |
+| `simulated` | 测试线专用模拟产物（用于跑测/演示，不进入正式交付） | 人工（仅测试场景；见 `_frontmatter-schema.md` §2） | ⏸ 跳过（gate 显示 `status=simulated (gate not enforced)`） | ⏸ 跳过（gate 显示「送审才强制」） | ❌ 不触发（`run_tests_mac.sh` 对 `status: simulated` 的 prd.md 跳过 trace） | 不算 active，不产生越级；实测全程 `workflow_valid=true`（无越级待审卡点）；注意 orchestrator 仍会把它当「未完成项」报 next_work_item（测试线不要求 complete） | 无（不要求人工确认；`pipeline.py review` 拒绝含 simulated/模拟 的 reviewer 名） |
+
+> **谁可设置**一列的依据：`src/templates/_frontmatter-schema.md` §2 状态枚举表 + 各 skill `references/output-contract.md` 的 Status Machine。`confirmed` 唯一的机器路径是 `pipeline.py review --decision approve`，且该命令强制 `current_status == ready_for_human_review`、reviewer 必须与 `authorized-reviewers.json` 匹配、角色必须在 registry `reviewer_roles` 内。
+
+---
+
+## 二、gate 行为明细（代码级证据）
+
+### 2.1 knowledge_state 强制（`dor_check.py`）
+
+- 仅 `status ∈ {ready_for_human_review, confirmed}` 时执行六态覆盖检查；`confirmed` 为信息性（`informational: true`，不 FAIL）。
+- 其余状态（draft / needs_user_input / conditional_review / superseded / simulated）直接跳过，输出 `status=<s> (gate not enforced)`。
+- 阈值：六态（FACT/DECISION/ASSUMPTION/AI_INFERENCE/UNKNOWN/CONFLICT）每种至少出现 1 次；ASSUMPTION 占比 ≤ 30%。
+
+### 2.2 stage_closeup 强制（`dor_check.py`）
+
+- 仅 `status == ready_for_human_review` 时强制两项：① `99-review/support/issue-record.md` 存在且阶段收口表含本 work item 行（空清单也是审计证据）；② 正文每个「待确认」必须同行带 Q-/ISS-/DEC-/SRC- 引用。
+- 其余状态跳过，输出 `status=<s>（送审才强制）`。
+
+### 2.3 trace 检查（`run_tests_mac.sh` + `traceability_check.py`）
+
+- 回归脚本对每个 REQ 目录的 `003-prd-output/prd.md` 执行 `traceability_check.py`，但**当 prd.md 的 `status: simulated` 时整项跳过**（`! grep -q '^status: simulated'`）。
+- 即：`simulated` 的 PRD 不触发 RTM 追溯检查；其余状态（含 ready_for_human_review、confirmed）都触发。
+
+### 2.4 workflow_valid 判定（`orchestrator.py`）
+
+- active 态集合：`{needs_user_input, conditional_review, ready_for_human_review}`。
+- 规则 1：单 active 约束——同时存在多个 active 产物时，除最早 order 外的都进 `invalid_active_items` → `workflow_valid=false`。
+- 规则 2：任一 active 产物的 predecessor 未 confirmed → `workflow_valid=false` 且该产物进 `invalid_active_items`（**这就是越级待审卡点**）。
+- 规则 3：confirmed / legacy_unverified 视为完成；`simulated` 不在 active 集合、也不在完成集合 → 不产生越级，`workflow_valid=true`，但会作为 next_work_item 被继续提示（测试线可忽略 complete 提示）。
+
+### 2.5 人工确认（`pipeline.py review` / `branch_validator.py`）
+
+- `--decision approve` 前置：`current_status == ready_for_human_review`（`simulated` 产物不能直接 approve）；reviewer 名不得为 AI/待确认/含 simulated/模拟；reviewer id+name+role 必须命中 `00-input/authorized-reviewers.json`；role 必须在 registry `reviewer_roles`。
+- `branch_validator` 对 confirmed 产物强制：有效 reviewer + 存在匹配 ReviewRecord + 当前内容 hash 与最新 ReviewRecord（按 reviewed_at 排序）一致，否则 CRITICAL。
+- `branch_validator` 通过 `projection_cache.read_projection` 获取 latest review record + hash（从 `.audit/projection.json` 派生视图读取，避免 glob+sort 的时序漂移陷阱）；glob+sort 仅对老案例（无 `.audit/events.jsonl`）作 fallback，触发时 emit warning 以保留迁移可见性。
+
+---
+
+## 三、实际案例证据
+
+### 3.1 REQ-006-service-account —— `ready_for_human_review` 触发越级待审卡点
+
+- 产物：5 个主 work item（BG/JS/UX/FD/PRD）全部 `status: ready_for_human_review`，无任何 confirmed。
+- 现象：`orchestrator.py` 实测输出 `workflow_valid=false`，`invalid_active_items = [user-journey-and-stories, product-ux, function-description, prd-assembly]`（上游未 confirmed 即越级待审）。
+- 记录：`99-review/support/issue-record.md` 登记「测试线 human gate 不可绕过：DOR 要求上游 confirmed，全部 work item 置 ready_for_human_review 后 workflow_valid=false 越级待审」。
+- gate 侧：knowledge_state 强制生效（FD 实测 `covered=6/6, assumption_ratio=0.083` 通过）；stage_closeup 强制生效（收口行 + 待确认引用齐全）；trace 检查触发。
+
+### 3.2 REQ-007-insidemp / REQ-008-bae —— `simulated` 全程 workflow_valid=true 且 gate「not enforced」
+
+- 产物：两案例 5 个主 work item 全部 `status: simulated`。
+- 现象：`orchestrator.py` 实测两案例均 `workflow_valid=true`、`blocked=false`、`invalid_active_items=[]`（无越级待审卡点）。
+- gate 侧（以 REQ-007 FD 实测为例）：
+  - `knowledge_state_coverage → status=simulated (gate not enforced)`（跳过）
+  - `stage_closeup → status=simulated（送审才强制）`（跳过）
+  - trace 检查：因 prd.md 为 simulated，`run_tests_mac.sh` 跳过。
+- 定位：测试线专用终态，全程不要求人工确认。
+
+### 3.3 REQ-001-rsvp / REQ-002-wecom / REQ-004-showmp —— `confirmed` 正式交付
+
+- 产物：三案例 5 个主 work item 全部 `status: confirmed`（REQ-002 为 BG-002-1 等多案例 ID 后缀）。
+- 现象：`orchestrator.py` 实测 REQ-001 `workflow_valid=true`、`complete=true`；confirmed 产物与 ReviewRecord（含 artifact_content_sha256）绑定，`branch_validator` 校验 hash 一致 → 正式交付基线。
+
+### 3.4 三态横向对比
+
+| 维度 | confirmed（001/002/004） | ready_for_human_review（003/005/006） | simulated（007/008） |
+|---|---|---|---|
+| workflow_valid | ✅ true | ❌ false（上游未 confirmed 即越级） | ✅ true |
+| 人工确认要求 | 有（review --decision approve） | 有（测试线协议豁免） | 无（不要求） |
+| knowledge_state 强制 | ✅ 强制（信息性） | ✅ 强制 | ⏸ 不强制（gate not enforced） |
+| prd 触发 trace 检查 | ✅ 触发 | ✅ 触发（006 曾失败并修复） | ⏸ 不触发（status: simulated 跳过） |
+| 语义定位 | 正式交付 | 待人工确认 | 测试线专用终态 |
+
+---
+
+## 四、明确约定（正式语义）
+
+1. **`simulated` = 测试线专用终态**：仅用于跑测/演示，产物不进入正式交付，全程**不要求人工确认**，gate 跳过知识状态/收口/trace 强制（标注见 §五建议）。测试线产物内部用 simulated 而非 ready_for_human_review，避免误触越级待审卡点。
+2. **`ready_for_human_review` = 正式线待人工确认**：语义正确但只应出现在正式线；测试线用它会导致「上游未 confirmed → workflow_valid=false」的越级误报（REQ-006 实证）。
+3. **`confirmed` = 唯一正式完成态**：仅授权人工可设置，与 ReviewRecord hash 绑定，不可变；AI 只能产出 ready_for_human_review。
+4. **simulated → 正式切换路径**（测试线产物如需转正式）：
+   ```
+   ① 将产物状态由 simulated 改为 ready_for_human_review（作为正式候选重新送审，AI 侧完成）
+   ② 跑机器闸门：python3 src/scripts/pipeline.py requirements/REQ-XXX gate --work-item <work-item>
+      —— 需通过知识状态六态覆盖 + stage_closeup + trace（prd-assembly）+ branch_validator
+   ③ 人工确认：python3 src/scripts/pipeline.py requirements/REQ-XXX review \
+        --work-item <work-item> --decision approve \
+        --reviewer "<真实人名>" --reviewer-id "<授权清单内 id>" --reviewer-role "<registry 内角色>"
+   ④ 上游全部 confirmed 后 workflow_valid=true，逐级推进至 prd-assembly confirmed → 正式交付
+   ```
+   **硬约束**：`pipeline.py review` 的 approve 只接受 `ready_for_human_review` 状态；reviewer 名含 simulated/模拟 会被拒绝；reviewer 必须与 `00-input/authorized-reviewers.json` 匹配。不存在「simulated 直接 approve 为 confirmed」的路径。
+5. **反向路径**（正式 → 测试线重跑）：将 confirmed/ready_for_human_review 产物降为 simulated 仅用于测试场景，需在 issue-record 登记原因（审计证据），且不应影响正式基线的 ReviewRecord。
+
+---
+
+## 五、结论建议（仅记录，不改代码）
+
+- **gate 对 simulated 的标注建议改为「测试线豁免」而非「not enforced」**：现状 `dor_check.py` 对 simulated 输出 `status=simulated (gate not enforced)` 与 stage_closeup 的「送审才强制」，语义上把「测试线专用豁免」误表述为「未执行/未强制」，易让读者误以为校验器漏检。
+- 建议文案（示例，具体措辞由实现者定）：
+  - knowledge_state：`status=simulated（测试线豁免：知识状态覆盖不强制）`
+  - stage_closeup：`status=simulated（测试线豁免：阶段收口不强制）`
+- 本建议仅为记录，**未修改任何校验器代码**；实现列入后续排期（可与「测试线双轨统一」合并实施）。
+- 相关待办：simulated 与 ready_for_human_review 的测试线双轨统一，留待后续实现。
+
+---
+
+## 附：证据文件索引
+
+| 证据 | 位置 |
+|---|---|
+| 状态枚举权威定义 | `src/templates/_frontmatter-schema.md` §2 |
+| 状态机语义（Who Sets / 转换） | `src/stages/*/skills/*/references/output-contract.md` |
+| 知识状态 / stage_closeup gate 逻辑 | `src/scripts/dor_check.py` |
+| workflow_valid / active 态判定 | `src/scripts/orchestrator.py` |
+| 人工确认 / simulated 拒绝逻辑 | `src/scripts/pipeline.py` |
+| confirmed 哈希绑定校验 | `src/scripts/branch_validator.py` |
+| simulated 跳过 trace 检查 | `run_tests_mac.sh`（`grep -q '^status: simulated'`） |
+| REQ-006 越级待审卡点记录 | `requirements/REQ-006-service-account/99-review/support/issue-record.md` |
+| REQ-007/008 simulated gate 实测 | `requirements/REQ-007-insidemp` / `REQ-008-bae` 产物 frontmatter + `dor_check.py` 输出 |
+| 三态横向对比 | REQ-001~008 案例产物实测（见本文 §三） |
+| 事件溯源（review/change/confirm/reflow/init 生命周期） | `src/scripts/audit_log.py`（`.audit/events.jsonl` append-only + prev_hash 链 + event_sha256 自指纹 + payload_sha256 绑定） |
+| 派生视图（latest review record + hash 单一读取入口） | `src/scripts/projection_cache.py`（`.audit/projection.json`，替代 glob+sort，对老案例带 warning fallback） |
+| 注册表契约硬化（schema + 模板↔校验器闭环，防契约漂移） | `src/scripts/registry_contract_check.py`（`run_tests_mac.sh` Phase 0 首项 fail-loud） |
+| 校验器统一错误格式（make_issue 8+ 字段） | `src/scripts/validation_errors.py` |

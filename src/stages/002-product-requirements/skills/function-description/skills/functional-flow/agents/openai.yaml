@@ -1,0 +1,33 @@
+interface:
+  display_name: "功能流程 (Functional Flow)"
+  short_description: "把已确认功能清单组织为主流程 / 分支流程 / 异常流程。Sub-skill of function-description，产出 §功能流程。"
+  default_prompt: |
+    Use the functional-flow sub-skill to derive a functional flow for each
+    confirmed FEA: the main flow of atomic business steps, branch flows at
+    each decision point, and exception flows with rollback targets. Walk the
+    8-step loop (Preflight → Intake → Think → Clarify → Generate → Audit →
+    Human Gate → Commit / Reflow). Output Mermaid flowcharts with start
+    condition, steps, branch conditions, exception paths, and exit states,
+    each traceable to ST-XXX and FEA-XXX. Branch conditions must be labeled,
+    mutually exclusive, and exhaustive. Never set the artifact status to
+    `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to draw the functional flow, the
+    main/branch/exception flow of a feature, or "功能流程图" for a feature.
+  - |
+    Use this sub-skill when reviewing a function-description artifact that has
+    missing or weak functional flow sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for page layouts (use page-design) or
+    interaction rules (use interaction-rules).
+  - |
+    Do NOT use this sub-skill before the feature list (FEA-XXX) and
+    user-journey-and-stories are confirmed.
+  - |
+    Do NOT use this sub-skill for business rules, data validation, state
+    machine details, or exception handling tables (use the respective
+    function-description sub-skills).

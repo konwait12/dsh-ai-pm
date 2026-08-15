@@ -1,0 +1,33 @@
+interface:
+  display_name: "问题清单 (Issue Record · 跨阶段共享)"
+  short_description: "BLK/RSK/DEC/INF/CLS/OUT 六类，open/in_progress/blocked/accepted/resolved/escalated 六态，AI 主动询问是否登记 / Cross-stage shared issue list with AI proactive inquiry."
+  default_prompt: |
+    Use the issue-record Skill (shared/clarify/skills/issue-record) to
+    centralize every open issue, blocker, risk, and decision-in-waiting.
+    When user input or source materials contain 待确认 / UNKNOWN / CONFLICT
+    signals, ASK the user first whether to register as ISS-NNN before
+    continuing to generate any solution.
+    Every issue must have category, state, owner, and source.
+    Never set the artifact status to `confirmed`; only the goal decision
+    owner or business sponsor may do that.
+
+# Agent-facing trigger examples (used by OpenAI / Anthropic Agent runtimes
+# during routing).
+trigger_examples:
+  - |
+    Use this Skill whenever any stage encounters 待确认 / UNKNOWN / CONFLICT
+    markers that need to be tracked across stages.
+  - |
+    Use this Skill when two sources contradict, when a decision is blocking
+    progress, or when a risk needs a named owner and target close date.
+  - |
+    Use this Skill to surface a previously raised issue for review, status
+    update, escalation, or acceptance.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this Skill to write requirements, design solutions, or
+    draft the PRD. Issue Record lists open problems; it does not solve them.
+  - |
+    Do NOT use this Skill to silently continue past a 待确认 marker. Always
+    ask the user whether to register the issue first.

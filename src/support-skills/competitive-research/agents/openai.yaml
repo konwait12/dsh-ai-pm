@@ -1,0 +1,34 @@
+interface:
+  display_name: "竞品调研 (Competitive Research)"
+  short_description: "当业务方案不清或功能设计缺乏参考时，用结构化框架分析竞品并产出可落地的'对我们意味着什么'结论 / Conduct structured competitive analysis when business direction is unclear or feature design lacks a reference."
+  default_prompt: |
+    Use the competitive-research support-skill to analyze competitors against
+    a confirmed business goal. Register every competitor source with an SRC-ID,
+    apply at least one structured framework, and always end with a "So What"
+    synthesis (what we should do, do differently, ignore, and not know yet).
+    Tag every finding AI_INFERENCE and never set the artifact status to
+    `confirmed`; only an authorized human may confirm applicability.
+
+# Agent-facing trigger examples (used by OpenAI / Anthropic Agent runtimes
+# during routing).
+trigger_examples:
+  - |
+    Use this Skill when the user asks for a "竞品分析 / 竞品调研 / 市场调研 /
+    competitive analysis" and the product solution direction is unclear or a
+    feature design lacks a reference.
+  - |
+    Use this Skill when the PM says something like "我不确定这个功能怎么做，
+    看看别人怎么做的" and a confirmed business background exists.
+  - |
+    Use this Skill when competitor evidence is needed to decide a differentiation
+    strategy, feature priority, or market-standard baseline.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this Skill for user journeys, UX design, feature descriptions,
+    or complete PRDs. Route to the corresponding downstream Skill.
+  - |
+    Do NOT use this Skill when there is no confirmed business goal to anchor the
+    research. If the input is a single sentence with no background, take the
+    low-density degradation path (output only a sufficiency assessment +
+    batched clarifying questions).

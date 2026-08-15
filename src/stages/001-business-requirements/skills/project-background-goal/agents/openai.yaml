@@ -1,0 +1,32 @@
+interface:
+  display_name: "项目背景与目标 (Project Background And Goal)"
+  short_description: "从多来源原始需求形成可追溯且经人工确认的项目背景与目标基线 / Convert multi-source raw requirements into a traceable, human-confirmed project background and goal baseline."
+  default_prompt: |
+    Use the project-background-goal Skill to consolidate these raw requirements.
+    First separate facts, assumptions, AI inferences, unknowns, and conflicts.
+    Then submit a candidate project background and goal document together with
+    batched clarifying questions. Never set the artifact status to `confirmed`;
+    only an authorized human may do that.
+
+# Agent-facing trigger examples (used by OpenAI / Anthropic Agent runtimes
+# during routing).
+trigger_examples:
+  - |
+    Use this Skill when the user provides raw requirements (email, meeting notes,
+    slides, documents, images) and needs to clarify why the project exists, the
+    current state, the core problem, intended outcomes, stakeholders, timing,
+    constraints, and unknowns before downstream work begins.
+  - |
+    Use this Skill when the user asks for a "项目背景 / project background" or
+    "目标和现状 / goal and current state" document.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this Skill for user journeys, UX, feature descriptions, field rules,
+    analytics plans, technical architecture, implementation tasks, test cases,
+    user manuals, or complete PRDs. Route to the corresponding downstream Skill.
+  - |
+    Do NOT use this Skill for a single feature request without business context.
+    If the input is a single sentence with no attachments, take the low-density
+    degradation path (output only a sufficiency assessment + batched clarifying
+    questions).

@@ -1,0 +1,58 @@
+{
+  "name": "dsh-ai-pm",
+  "version": "0.1.0",
+  "description": "DSH AI-PM 插件：把 pm-scaffold 的 PRD 工作流接入 DeepSeek Harness——agent 侧提供 pipeline 模型工具（init/status/entry/gate/reflow/skill/artifact），GUI 侧提供需求看板与不可绕过的人工确认闸门。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "skills",
+    "docs",
+    "test",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "AGENTS.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/konwait12/dsh-ai-pm.git"
+  },
+  "homepage": "https://github.com/konwait12/dsh-ai-pm",
+  "bugs": {
+    "url": "https://github.com/konwait12/dsh-ai-pm/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "pm",
+    "prd",
+    "product-management",
+    "ai-pm"
+  ],
+  "engines": {
+    "node": ">=20.18"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
+  }
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mermaid 本地渲染器</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #f4f6fb; --surface: #fff; --ink: #17233d; --muted: #5b6b85;
+  --accent: #2f6bff; --radius: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--ink); padding: 30px; line-height: 1.75; }
+h1 { font-size: 28px; margin-bottom: 8px; }
+.sub { color: var(--muted); margin-bottom: 24px; }
+.toolbar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.toolbar button, .toolbar input { padding: 8px 16px; border-radius: 8px; border: 1px solid #ccc;
+  font-size: 14px; cursor: pointer; background: var(--surface); }
+.toolbar button:hover { background: #eef; border-color: var(--accent); }
+#editor { width: 100%; min-height: 200px; font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px; padding: 16px; border-radius: var(--radius); border: 1px solid #ccc;
+  resize: vertical; background: var(--surface); }
+#preview { margin-top: 24px; padding: 24px; background: #fff; border-radius: var(--radius);
+  border: 1px solid #ddd; min-height: 100px; overflow-x: auto; }
+#preview svg { max-width: 100%; height: auto; }
+.error { color: #dc2626; padding: 12px; background: #fef2f2; border-radius: 8px; margin-top: 8px; }
+.templates { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.templates button { font-size: 12px; padding: 4px 10px; }
+</style>
+</head>
+<body>
+
+<h1>📊 Mermaid 本地渲染器</h1>
+<p class="sub">零依赖 · 纯浏览器本地 · 粘贴 Mermaid 代码 → 实时渲染 → 右键保存 SVG</p>
+
+<div class="toolbar">
+  <button onclick="renderDiagram()">🔄 渲染</button>
+  <button onclick="downloadSVG()">💾 保存 SVG</button>
+  <button onclick="downloadPNG()">🖼️ 保存 PNG</button>
+  <input type="file" id="fileInput" accept=".md,.mmd" onchange="loadFile(event)" style="display:none">
+  <button onclick="document.getElementById('fileInput').click()">📂 打开 .md/.mmd</button>
+</div>
+
+<div class="templates">
+  <span style="font-size:12px;color:var(--muted);line-height:2">模板:</span>
+  <button onclick="loadTemplate('flowchart')">流程图</button>
+  <button onclick="loadTemplate('sequence')">时序图</button>
+  <button onclick="loadTemplate('gantt')">甘特图</button>
+  <button onclick="loadTemplate('state')">状态图</button>
+  <button onclick="loadTemplate('journey')">用户旅程</button>
+  <button onclick="loadTemplate('er')">ER图</button>
+  <button onclick="loadTemplate('arch')">架构图</button>
+</div>
+
+<textarea id="editor" placeholder="在此粘贴 Mermaid 代码...">graph TD
+    A[设备数据采集] --> B[实时监控看板]
+    B --> C{异常检测?}
+    C -->|正常| B
+    C -->|异常| D[故障预警通知]
+    D --> E{是否误报?}
+    E -->|是| F[IT标记误报→反馈模型]
+    F --> B
+    E -->|否| G[生成维护工单]
+    G --> H[指派维修技师]
+    H --> I[手机端执行+扫码记录]
+    I --> J[试点效果评估]</textarea>
+
+<div id="preview"></div>
+<div id="error"></div>
+
+<script>
+mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+const templates = {
+  flowchart: `graph TD\n    A[开始] --> B{判断条件}\n    B -->|是| C[执行A]\n    B -->|否| D[执行B]\n    C --> E[结束]\n    D --> E`,
+  sequence: `sequenceDiagram\n    participant U as 用户\n    participant S as 系统\n    U->>S: 提交请求\n    S->>S: 校验数据\n    S-->>U: 返回结果`,
+  gantt: `gantt\n    title 项目排期\n    dateFormat YYYY-MM-DD\n    section 阶段一\n    需求分析 :a1, 2026-01-01, 7d\n    section 阶段二\n    设计开发 :a2, after a1, 14d`,
+  state: `stateDiagram-v2\n    [*] --> 待处理\n    待处理 --> 处理中 : 接单\n    处理中 --> 已完成 : 提交\n    处理中 --> 已取消 : 超时\n    已完成 --> [*]`,
+  journey: `journey\n    title 用户旅程\n    section 发现\n      浏览商品: 5: 用户\n    section 购买\n      下单: 3: 用户\n      支付: 4: 用户`,
+  er: `erDiagram\n    CUSTOMER ||--o{ ORDER : places\n    ORDER ||--|{ LINE-ITEM : contains\n    CUSTOMER { string name\n    int age }`,
+  arch: `graph TD\n    subgraph 前端\n        Web[Web App]\n    end\n    subgraph 后端\n        API[API Gateway] --> SVC[微服务]\n    end\n    subgraph 数据\n        SVC --> DB[(数据库)]\n    end\n    Web --> API`
+};
+
+async function renderDiagram() {
+  const code = document.getElementById('editor').value;
+  const preview = document.getElementById('preview');
+  const error = document.getElementById('error');
+  error.innerHTML = ''; preview.innerHTML = '';
+
+  try {
+    const { svg } = await mermaid.render('mermaid-diagram', code);
+    preview.innerHTML = svg;
+  } catch (e) {
+    error.innerHTML = `<div class="error">❌ 渲染失败: ${e.message}</div>`;
+  }
+}
+
+function downloadSVG() {
+  const svg = document.querySelector('#preview svg');
+  if (!svg) return alert('请先渲染图');
+  const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'diagram.svg'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadPNG() {
+  const svg = document.querySelector('#preview svg');
+  if (!svg) return alert('请先渲染图');
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  const svgData = new XMLSerializer().serializeToString(svg);
+  const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  img.onload = () => {
+    canvas.width = img.width * 2; canvas.height = img.height * 2;
+    ctx.scale(2, 2); ctx.drawImage(img, 0, 0);
+    canvas.toBlob(b => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+      a.download = 'diagram.png'; a.click();
+    });
+  };
+  img.src = url;
+}
+
+function loadTemplate(type) {
+  document.getElementById('editor').value = templates[type] || '';
+  renderDiagram();
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    let text = e.target.result;
+    // Extract first mermaid block if .md
+    const match = text.match(/```mermaid\n([\s\S]*?)```/);
+    document.getElementById('editor').value = match ? match[1].trim() : text;
+    renderDiagram();
+  };
+  reader.readAsText(file);
+}
+
+// Auto-render on load
+renderDiagram();
+</script>
+</body>
+</html>

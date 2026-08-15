@@ -1,0 +1,7 @@
+# PM Scaffold - Python dependencies
+# Minimum: Python 3.10+ (standard library only for validate_artifact.py)
+# All validation scripts use only stdlib modules (re, json, argparse, pathlib)
+# No external dependencies required for core functionality.
+
+# Optional: for running tests
+# pytest>=7.0.0

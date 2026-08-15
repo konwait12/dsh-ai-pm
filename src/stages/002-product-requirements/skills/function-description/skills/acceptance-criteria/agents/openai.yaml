@@ -1,0 +1,25 @@
+interface:
+  display_name: "验收标准 (Acceptance Criteria)"
+  short_description: "定义可测量验收标准 AC-XXX（Given/When/Then + 量化阈值）。Sub-skill of function-description (called last)。"
+  default_prompt: |
+    Use the acceptance-criteria sub-skill to write atomic, independently
+    testable AC items in Given/When/Then format. Reference quantified
+    thresholds from Stage 1 goals (G-X). Cover main flow and primary
+    exception path. Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to define acceptance criteria,
+    done conditions, or "验收标准" for P0 functions.
+  - |
+    Use this sub-skill as the final step of function-description
+    orchestration to validate all previous sub-skill sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for test cases (the artifact is the AC
+    table, not test scripts).
+  - |
+    Do NOT use this sub-skill before product-ux, business-rules,
+    validation-rules, state-machine, and exception-handling are all
+    confirmed.

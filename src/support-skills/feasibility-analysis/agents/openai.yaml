@@ -1,0 +1,39 @@
+interface:
+  display_name: "可行性分析 (Feasibility Analysis)"
+  short_description: "进入主干前评估可行性（市场空间/技术可行性/投入产出/风险）并给出带置信度的做/不做/有条件做推荐；多方案取舍作为其中的 §多方案取舍 章节处理，最终决策永远由人做出 / Assess feasibility across market/technical/cost-benefit/risk with a weighted decision matrix for multi-solution tradeoffs; AI recommends, humans decide."
+  default_prompt: |
+    Use the feasibility-analysis support-skill when a product decision has
+    materially different options (build vs buy, different approaches, different
+    scope tradeoffs) or when feasibility is in question. Define criteria BEFORE
+    scoring, describe every option at equal depth, run sensitivity analysis,
+    and give a recommendation with an explicit confidence level. Never make the
+    final decision — the decision owner's choice is recorded as a DEC-XXX
+    DecisionRecord. Never set the artifact status to `confirmed`; only an
+    authorized human may do that.
+
+# Agent-facing trigger examples (used by OpenAI / Anthropic Agent runtimes
+# during routing).
+trigger_examples:
+  - |
+    Use this Skill when the user asks for "方案评估 / 方案对比 / 可行性分析 /
+    A 还是 B / build vs buy" and a concrete product-level solution already exists.
+  - |
+    Use this Skill when a material choice between solutions affects scope, cost,
+    compliance, dependencies, or risk, and a decision owner needs the tradeoffs
+    surfaced objectively.
+  - |
+    Use this Skill when the PM says something like "自研还是外采 / 方案 A vs
+    方案 B / 多个方案怎么选".
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this Skill for user journeys, UX design, feature descriptions,
+    or complete PRDs. Route to the corresponding downstream Skill.
+  - |
+    Do NOT use this Skill when only implementation details differ between
+    options — those belong to engineering, not product assessment.
+  - |
+    Do NOT use this Skill when no concrete product-level solution exists. If the
+    input is a vague idea with no decision owner, take the low-density
+    degradation path (output only a sufficiency assessment + batched clarifying
+    questions).

@@ -1,0 +1,31 @@
+interface:
+  display_name: "功能清单 (Feature List)"
+  short_description: "从已确认用户故事 ST-XXX 分解出可追溯、边界不重叠、带优先级的功能清单 FEA-XXX。Sub-skill of function-description（order 1）。"
+  default_prompt: |
+    Use the feature-list sub-skill to decompose confirmed user stories (ST-XXX)
+    into a prioritized, non-overlapping feature list (FEA-XXX) with explicit
+    in/out boundaries. Output a §功能清单 table with feature ID, name, owning
+    story, priority, one-line description, and source. Every FEA must trace to
+    ≥1 confirmed ST-XXX. Never set the artifact status to `confirmed`.
+
+# Agent-facing trigger examples (used by OpenAI / Anthropic Agent runtimes
+# during routing).
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to turn confirmed user stories into a
+    feature list, function inventory, or "功能清单 / FEA" from confirmed stories
+    (ST-XXX).
+  - |
+    Use this sub-skill when reviewing a function-description artifact that has a
+    missing or under-specified §功能清单 section, or when features exist without
+    story traceability.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for UX flows (use function-description / functional-flow), interaction
+    rules (use interaction-rules), page skeletons (use page-design), business
+    rules (use business-rules), field validations (use validation-rules), state
+    transitions (use state-machine), exception recovery (use exception-handling),
+    or acceptance criteria (use acceptance-criteria).
+  - |
+    Do NOT use this sub-skill before user-journey-and-stories is confirmed.

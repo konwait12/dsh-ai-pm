@@ -1,0 +1,26 @@
+interface:
+  display_name: "校验规则 (Validation Rules)"
+  short_description: "定义字段级和跨字段校验规则 VL-XXX（必填、格式、范围、错误消息）。Sub-skill of function-description。"
+  default_prompt: |
+    Use the validation-rules sub-skill to derive field-level and cross-field
+    checks from confirmed business-rules and product-ux. Output a §VL table
+    with field, rule type, expression, and user-visible error message in
+    EARS-compliant syntax. Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to specify field validation,
+    format checks, range constraints, or "校验规则" / "字段规则" for a
+    function set.
+  - |
+    Use this sub-skill when reviewing a function-description artifact that
+    has missing or weak §VL sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for business policy logic (use
+    business-rules), state machine transitions (use state-machine), or
+    user-facing recovery (use exception-handling).
+  - |
+    Do NOT use this sub-skill before product-ux and business-rules are
+    confirmed.

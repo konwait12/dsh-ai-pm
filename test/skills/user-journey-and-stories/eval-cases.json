@@ -1,0 +1,34 @@
+{
+  "should_trigger": [
+    "根据确认的项目背景，画出用户旅程图",
+    "把这个项目的用户故事整理出来，要有 Story 卡片",
+    "基于这份已确认的背景基线，推导所有角色场景和 story cards",
+    "Generate user journey map from the confirmed background artifact",
+    "Derive user stories with the canonical format from this project background",
+    "我需要这个项目的完整用户旅程和用户故事",
+    "从产品背景推导出 lifecycle 各个阶段的用户旅程",
+    "Based on the confirmed roles, create journey map and story cards"
+  ],
+  "should_not_trigger": [
+    "设计这个页面的交互流程和按钮位置",
+    "写这个功能的业务规则和字段校验逻辑",
+    "汇总所有已确认内容，生成最终 PRD",
+    "分析这封邮件里的项目背景和需求目标",
+    "画这个页面的高保真原型",
+    "定义数据库表结构和字段",
+    "写测试用例和验收标准",
+    "做这个功能的竞品对比分析"
+  ],
+  "end_to_end": [
+    {
+      "name": "hire-website-journey-from-confirmed-bg",
+      "description": "REQ-001 招聘网站：从 confirmed background-goal 推导用户旅程和故事卡片",
+      "upstream": "requirements/REQ-001-hire-website/001-business-requirements/01-background-goal/background-goal.md (confirmed v1.0)"
+    },
+    {
+      "name": "predictive-maintenance-journey",
+      "description": "REQ-002 预测性维护：从初始背景材料推导旅程（输入密度较低）",
+      "upstream": "requirements/REQ-002-predictive-maintenance/001-business-requirements/01-background-goal/background-goal.md"
+    }
+  ]
+}

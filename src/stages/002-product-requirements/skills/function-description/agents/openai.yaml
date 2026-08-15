@@ -1,0 +1,22 @@
+interface:
+  display_name: "功能描述 (Function Description)"
+  short_description: "引用已确认交互规则并定义业务、校验、权限、状态、异常恢复和验收规则 / Reference confirmed interactions and specify business, validation, permission, state, recovery, and acceptance rules."
+  default_prompt: |
+    Use the function-description Skill for the second work item in the
+    product-requirements stage. Consume confirmed scope, features, UX flows,
+    pages, states, and IX rules; reference IX and define BR, VL, permissions,
+    recovery, and AC explicitly. Do not redefine IX or redesign UX structure.
+
+trigger_examples:
+  - "根据 UX 规格写功能描述和业务规则"
+  - "定义这个功能的校验规则和异常处理"
+  - "写验收标准和权限矩阵"
+  - "Write business rules and acceptance criteria for these features"
+  - "Specify validation logic and exception handling"
+
+should_not_trigger_examples:
+  - "设计 UX 交互流程 → product-ux"
+  - "汇总 PRD → prd-assembly"
+  - "画用户旅程 → user-journey-and-stories"
+  - "数据库表设计"
+  - "写前端代码"

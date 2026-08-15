@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://product-ai-scaffold.local/templates/library/manifest.schema.json",
+  "title": "模板包清单 Schema（预留）",
+  "description": "未来模板自动分类库的模板包元数据 schema。当前为预留接口，不被任何脚本读取。未来 classifier.py 将依据此 schema 解析 src/templates/extensions/<domain>/manifest.json。",
+  "type": "object",
+  "required": ["template_package_id", "name", "version", "domain", "scenario", "status"],
+  "properties": {
+    "template_package_id": {
+      "type": "string",
+      "description": "模板包唯一标识，如 scenario-template-v1",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "模板包中文名称"
+    },
+    "version": {
+      "type": "string",
+      "description": "语义化版本号",
+      "pattern": "^v\\d+\\.\\d+\\.\\d+$"
+    },
+    "domain": {
+      "type": "string",
+      "description": "业务域分类，用于自动匹配。如 retail-luxury、content-platform、ecommerce、recruitment",
+      "examples": ["retail-luxury", "content-platform", "ecommerce", "recruitment"]
+    },
+    "scenario": {
+      "type": "string",
+      "description": "具体业务场景，如 scenario-name、content-publish-flow"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "ready_for_human_review", "confirmed", "deprecated"],
+      "description": "模板包生命周期状态。confirmed 才可被 classifier 自动选用"
+    },
+    "auto_classify": {
+      "type": "boolean",
+      "default": false,
+      "description": "是否参与自动分类。true 时 classifier 会根据请求关键词匹配此模板包"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "补充标签，用于关键词匹配兜底。如 [邀约, 核销, VVIP, 奢侈品]"
+    },
+    "templates": {
+      "type": "array",
+      "description": "此模板包包含的模板文件清单",
+      "items": {
+        "type": "object",
+        "required": ["file", "maps_to"],
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "模板文件名，如 background-goal.md"
+          },
+          "maps_to": {
+            "type": "string",
+            "description": "对应的核心模板名（resolver TEMPLATE_MAP 的 key）",
+            "examples": ["background-goal.md", "journey-and-stories.md", "prd.md"]
+          },
+          "override_mode": {
+            "type": "string",
+            "enum": ["replace", "extend", "supplement"],
+            "default": "replace",
+            "description": "replace=完全替换核心模板；extend=在核心模板后追加场景字段；supplement=作为备选模板"
+          }
+        }
+      }
+    },
+    "desensitized": {
+      "type": "boolean",
+      "default": true,
+      "description": "是否已完成脱敏。业务模板包必须脱敏后才能进入 extensions/"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "来源信息，用于追溯模板来源",
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["real_project_desensitized", "synthetic", "contributed"]
+        },
+        "original_project": {
+          "type": "string",
+          "description": "原项目名（脱敏后），如 某奢侈品零售春季活动"
+        },
+        "desensitized_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "contributor": {
+          "type": "string",
+          "description": "贡献者标识"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

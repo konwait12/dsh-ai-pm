@@ -1,0 +1,26 @@
+interface:
+  display_name: "状态机 (State Machine)"
+  short_description: "定义状态机 SM-XXX（states × events → target states + guards）。Sub-skill of function-description。"
+  default_prompt: |
+    Use the state-machine sub-skill to enumerate states, events, and target
+    states for each entity in scope. Include guards, side effects, and
+    illegal-transition handling. Output a §State table with state, event,
+    target, guard, and side-effect columns. Never set the artifact status
+    to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to model status transitions,
+    lifecycle, or "状态机" for an entity in a function set.
+  - |
+    Use this sub-skill when reviewing a function-description artifact that
+    has missing or under-specified §State sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for business rules (use business-rules),
+    validation logic (use validation-rules), or failure recovery (use
+    exception-handling).
+  - |
+    Do NOT use this sub-skill for read-only entities with no state
+    transitions.

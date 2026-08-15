@@ -1,0 +1,34 @@
+{
+  "should_trigger": [
+    "汇总 前四个工作事项 confirmed 产物生成最终 PRD",
+    "把所有上游产物汇总成 prd.md",
+    "做正向和反向追溯检查",
+    "Aggregate all confirmed artifacts into a final PRD",
+    "Generate traceability matrix G→ST→FEA→FUN→AC→BR",
+    "做一致性检查并生成不一致报告",
+    "I need a single PRD document combining everything confirmed",
+    "Run cross-artifact consistency check before publishing"
+  ],
+  "should_not_trigger": [
+    "在 PRD 中添加新需求",
+    "修改已 confirmed 的上游产物",
+    "推导新的功能或故事",
+    "写每个功能的详细业务规则",
+    "画 UX 流程图",
+    "画页面原型",
+    "立项材料",
+    "修改历史 PRD"
+  ],
+  "end_to_end": [
+    {
+      "name": "hire-website-prd-aggregation",
+      "description": "REQ-001 招聘网站：从 前四个工作事项 confirmed 汇总成 prd.md（含 RTM 四方矩阵）",
+      "upstream": "fixtures/hire-website-prd-confirmed.md (演示样本)"
+    },
+    {
+      "name": "prd-violation-missing-upstream",
+      "description": "故意违规样本：缺 UX-/FD- 前缀上游（应触发 PRD DoD D5.2 error）",
+      "upstream": "fixtures/prd-violation-missing-upstream.md (ready_for_human_review)"
+    }
+  ]
+}

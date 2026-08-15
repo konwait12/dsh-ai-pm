@@ -1,0 +1,34 @@
+{
+  "should_trigger": [
+    "把这段 UX 转成每个功能的详细描述",
+    "展开每个功能的业务规则、字段校验和异常处理",
+    "生成每个 FUN 的 AC 验收标准",
+    "Generate Given/When/Then acceptance criteria from UX",
+    "Write business rules and validation for each function",
+    "把这个 UX 功能展开成开发可实现的描述",
+    "Detail every feature's error handling and rollback",
+    "Expand these UX flows into per-feature specs"
+  ],
+  "should_not_trigger": [
+    "汇总所有已确认内容生成最终 PRD",
+    "分析这封邮件里的项目背景和需求目标",
+    "推导用户旅程与用户故事",
+    "画 UX 流程图与页面原型",
+    "画这个页面背后的数据库表结构",
+    "立项材料",
+    "回顾竞品 PRD",
+    "做产品定位和用户访谈"
+  ],
+  "end_to_end": [
+    {
+      "name": "pdm-fault-warning-from-confirmed-ux",
+      "description": "REQ-002 预测性维护：从 confirmed UX 推导故障预警功能描述（FUN + BR + AC）",
+      "upstream": "requirements/REQ-002-predictive-maintenance/002-product-requirements/01-product-ux/ux.md (confirmed v1.0)"
+    },
+    {
+      "name": "fd-violation-no-given-when-then",
+      "description": "故意违规样本：AC 缺 Given/When/Then + NFR 缺 Volere 引用（应触发 D4.4/D4.8 warning）",
+      "upstream": "fixtures/fd-violation-no-given-when-then.md (ready_for_human_review)"
+    }
+  ]
+}

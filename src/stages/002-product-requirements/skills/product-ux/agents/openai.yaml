@@ -1,0 +1,23 @@
+interface:
+  display_name: "产品 UX (Product UX)"
+  short_description: "从已确认旅程/故事定义页面骨架与页面层交互规则 / Define page skeletons and page-level interaction rules from confirmed journey and stories. Feature lists and functional flows belong to function-description."
+  default_prompt: |
+    Use the product-ux Skill for the first work item in the product-requirements
+    stage. Define page skeletons (WHERE content lives) and page-level interaction
+    rules (IX, HOW users interact). Do not produce feature lists or functional
+    flows — those belong to function-description. Route business, validation,
+    permission, recovery, and acceptance rules to function-description.
+
+trigger_examples:
+  - "基于确认的用户故事，设计页面骨架和页面层交互规则"
+  - "定义页面、步骤、状态和页面层交互规则"
+  - "Describe page skeletons and interaction rules from confirmed stories"
+  - "Build page skeletons and IX rules from the confirmed journey"
+
+should_not_trigger_examples:
+  - "写业务规则和字段校验 → routes to function-description"
+  - "汇总 PRD → routes to prd-assembly"
+  - "分析项目背景 → routes to project-background-goal"
+  - "画用户旅程图 → routes to user-journey-and-stories"
+  - "数据库设计"
+  - "写测试用例"

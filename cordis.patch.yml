@@ -1,0 +1,9 @@
+# dsh-ai-pm 挂载补丁：在 DSH web profile 中启用 AI-PM 插件。
+# 安装：把 dsh-ai-pm 放入 profiles/web/node_modules 后，本文件由
+# package.json 的 dsh.bundle.patch 自动应用（或手动 insert）。
+- insert:
+    - id: ai-pm
+      name: 'dsh-ai-pm'
+      config:
+        # Windows 用 python；macOS/Linux 用 python3（或显式指定路径）。
+        pythonCmd: python

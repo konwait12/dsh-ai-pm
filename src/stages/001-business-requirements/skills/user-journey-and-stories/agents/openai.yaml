@@ -1,0 +1,28 @@
+interface:
+  display_name: "用户旅程与用户故事 (User Journey And Stories)"
+  short_description: "从已确认背景依次形成业务生命周期用户旅程和可追溯用户故事 / Build lifecycle journeys, then derive traceable stories from a confirmed business baseline."
+  default_prompt: |
+    Use the user-journey-and-stories Skill for the second work item in the
+    business-requirements stage. Build and confirm the lifecycle-by-role journey
+    before deriving story cards. Keep brainstormed candidates unconfirmed until
+    an authorized business owner selects them.
+
+trigger_examples:
+  - "根据这份项目背景，画出用户旅程图"
+  - "把这个项目的用户故事整理出来"
+  - "基于已确认的背景，推导角色场景和 story cards"
+  - "Generate user journey map and story cards from the confirmed background"
+  - "I need user stories for this project"
+  - "Map out the user lifecycle and derive stories"
+  - "画出用户旅程并列出 story 卡片"
+  - "确认的角色和场景，生成用户故事"
+
+should_not_trigger_examples:
+  - "设计这个页面的交互流程 → routes to product-ux"
+  - "写这个功能的业务规则 → routes to function-description"
+  - "汇总 PRD 文档 → routes to prd-assembly"
+  - "分析项目背景和目标 → routes to project-background-goal"
+  - "画原型图"
+  - "写功能验收标准"
+  - "数据库表设计"
+  - "竞品分析报告"

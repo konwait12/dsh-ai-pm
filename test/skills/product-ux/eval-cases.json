@@ -1,0 +1,34 @@
+{
+  "should_trigger": [
+    "基于已确认的用户旅程，画出 UX 流程图",
+    "把这段旅程转成产品范围 + 功能清单 + 交互规则",
+    "生成 UX 流程图与功能清单",
+    "Design UX flow and feature list from this journey map",
+    "Build interaction rules and page descriptions",
+    "我需要这个产品的 UX 流程图与原型",
+    "从旅程推导 UX 范围和功能边界",
+    "Translate these stories into UX flows and feature list"
+  ],
+  "should_not_trigger": [
+    "汇总所有已确认内容生成最终 PRD",
+    "分析这封邮件里的项目背景和需求目标",
+    "推导用户旅程与用户故事",
+    "写这个功能的业务规则和字段校验逻辑",
+    "画这个页面背后的数据库表结构",
+    "写测试用例和验收标准",
+    "做这个功能的竞品对比分析",
+    "完成项目立项材料"
+  ],
+  "end_to_end": [
+    {
+      "name": "pdm-pilot-ux-from-confirmed-journey",
+      "description": "REQ-002 预测性维护：从 confirmed journey-and-stories 推导 产品 UX",
+      "upstream": "requirements/REQ-002-predictive-maintenance/001-business-requirements/02-user-journey-stories/journey-and-stories.md (confirmed v1.0)"
+    },
+    {
+      "name": "pdm-pilot-ux-low-density",
+      "description": "产品 UX 低密度退化（仅 5 字输入 '画一下首页'）",
+      "upstream": "fixtures/ux-low-density-degradation.md (needs_user_input)"
+    }
+  ]
+}

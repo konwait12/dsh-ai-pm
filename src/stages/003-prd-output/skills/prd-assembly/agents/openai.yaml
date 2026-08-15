@@ -1,0 +1,23 @@
+interface:
+  display_name: "PRD 汇总 (PRD Assembly)"
+  short_description: "汇总所有已确认基线并通过正反向追溯形成唯一 prd.md / Assemble confirmed baselines into one traceable prd.md without adding requirements."
+  default_prompt: |
+    Use the prd-assembly Skill in the PRD-output stage. Aggregate only confirmed
+    upstream baselines, run document-contract and explicit-edge checks, expose
+    inconsistencies, and return conflicts upstream. Never introduce or silently
+    resolve requirements.
+
+trigger_examples:
+  - "汇总所有已确认内容生成最终 PRD"
+  - "做正向和反向追溯检查"
+  - "生成需求追溯矩阵 RTM"
+  - "Assemble the final PRD from confirmed artifacts"
+  - "Generate traceability matrix and consistency report"
+
+should_not_trigger_examples:
+  - "写项目背景 → project-background-goal"
+  - "画用户旅程 → user-journey-and-stories"
+  - "设计 UX → product-ux"
+  - "写功能描述 → function-description"
+  - "新增一个需求"
+  - "修改业务规则"

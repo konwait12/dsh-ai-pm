@@ -1,0 +1,26 @@
+interface:
+  display_name: "业务规则 (Business Rules)"
+  short_description: "定义领域级业务规则 BR-XXX（约束、计算、策略）。Sub-skill of function-description。"
+  default_prompt: |
+    Use the business-rules sub-skill to extract domain-level constraints,
+    calculations, and policies from confirmed product-ux and upstream scope
+    baseline. Output a §BR table with rule ID, statement, source, and
+    exception path. Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to extract business rules, domain
+    constraints, calculation policies, or "业务规则" from a confirmed function
+    set.
+  - |
+    Use this sub-skill when reviewing a function-description artifact that
+    has missing or under-specified §BR sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for field-level validation rules (use
+    validation-rules), state transitions (use state-machine), exception
+    recovery (use exception-handling), or Given/When/Then acceptance
+    criteria (use acceptance-criteria).
+  - |
+    Do NOT use this sub-skill before product-ux is confirmed.

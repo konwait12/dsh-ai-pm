@@ -1,0 +1,30 @@
+interface:
+  display_name: "需求重举 (Requirement Restate)"
+  short_description: "用利益相关方自己的话重述需求，生成可逐条确认的清单 / Restate original requirements in stakeholder's own words as a verifiable checklist."
+  default_prompt: |
+    Use the requirement-restate Skill to convert the original ask into a
+    structured list of restated requirements — one ask per row, in the
+    stakeholder's own words, with source binding and original phrasing.
+    Flag conflicts as CONFLICT and route them to issue-record; do NOT resolve
+    them here. Never slip a solution into the restatement.
+    Never set the artifact status to `confirmed`; only the original stakeholder
+    (or their named delegate) may do that.
+
+# Agent-facing trigger examples (used by OpenAI / Anthropic Agent runtimes
+# during routing).
+trigger_examples:
+  - |
+    Use this Skill when the original ask has been passed through multiple
+    sources, languages, or teams, and a "do we really agree on the ask?" gate
+    is required.
+  - |
+    Use this Skill when sources contradict each other, when the cost of
+    misreading is high, or when a new stakeholder needs to re-anchor the ask.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this Skill to propose solutions, define journeys, or design
+    fields. Restate only.
+  - |
+    Do NOT use this Skill when the ask is trivially clear; a one-line
+    confirmation is enough and does not need this artifact.

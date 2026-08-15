@@ -1,0 +1,27 @@
+interface:
+  display_name: "埋点需求分析 (Tracking Plan)"
+  short_description: "为每个 P0 功能定义事件、属性、触发时机、上报时机、平台与关联指标。Sub-skill of function-description (consumes confirmed FUN/IX/BR)."
+  default_prompt: |
+    Use the tracking-plan sub-skill to define what to track for each P0
+    function. Pull confirmed upstream FUN-XXX, IX-XXX, BR-XXX.
+    For each event: name, type, trigger, properties (with PII flag),
+    upload timing, platform, metric, goal, priority.
+    Map every event to a G-X goal. No orphan events.
+    Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to define 埋点 / tracking / events /
+    数据采集 / instrumentation for the product.
+  - |
+    Use this sub-skill when data team needs a PRD-side event contract
+    before the development team instruments the product.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill to write SQL queries, design data warehouse
+    tables, or define A/B test methodology. The artifact is the event table.
+  - |
+    Do NOT use this sub-skill before business-rules, validation-rules,
+    state-machine, and exception-handling are all confirmed. Tracking Plan
+    depends on confirmed rules.

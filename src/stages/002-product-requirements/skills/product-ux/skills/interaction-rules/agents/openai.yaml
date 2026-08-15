@@ -1,0 +1,33 @@
+interface:
+  display_name: "交互规则 (Interaction Rules)"
+  short_description: "定义可复用的页面层交互规则 IX-XXX（触发条件、系统响应、状态覆盖）。Sub-skill of product-ux，产出 §3。"
+  default_prompt: |
+    Use the interaction-rules sub-skill to define page-layer interaction
+    rules IX-XXX for each interactive element on the confirmed pages:
+    user operation → system response, covering loading/empty/error/disabled/
+    timeout states, modal behavior, navigation triggers, and edge cases.
+    Walk the 8-step loop (Preflight → Intake → Think → Clarify → Generate →
+    Audit → Human Gate → Commit / Reflow). Output the §3 rule table in the
+    parent product-ux artifact using the rule-writing-format. Route data
+    validation, calculation, and permission logic to function-description.
+    Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to specify interaction rules,
+    input constraints, feedback behavior, or "交互规则" for a feature.
+  - |
+    Use this sub-skill when reviewing a product-ux artifact that has
+    missing or weak interaction-rule sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for end-to-end functional flow (use
+    functional-flow in function-description) or page-level IA (use
+    page-design).
+  - |
+    Do NOT use this sub-skill for domain-level function behavior (use
+    function-description).
+  - |
+    Do NOT use this sub-skill before page-design and functional-flow
+    (功能流程) are confirmed.

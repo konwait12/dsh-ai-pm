@@ -1,0 +1,36 @@
+interface:
+  display_name: "页面设计 (Page Design)"
+  short_description: "设计页面骨架：入口、前置条件、内容、操作、下一状态。Sub-skill of product-ux，产出 §2。"
+  default_prompt: |
+    Use the page-design sub-skill to specify the page skeleton for each
+    step in the confirmed functional flow: entry trigger, preconditions,
+    main content areas, available actions, and next state. Walk the 8-step
+    loop (Preflight → Intake → Think → Clarify → Generate → Audit → Human
+    Gate → Commit / Reflow). Output the §2.1 page/step table in the parent
+    product-ux artifact, one row per page, every action with an explicit
+    next state. Use ASCII wireframe or reference HTML prototype techniques
+    only as a communication aid. Never set the artifact status to `confirmed`.
+
+trigger_examples:
+  - |
+    Use this sub-skill when the user asks to design page structure,
+    page inventory, entry/precondition/action/next-state, or "页面设计"
+    for a feature.
+  - |
+    Use this sub-skill when reviewing a product-ux artifact that has
+    missing or weak page-level sections.
+
+should_not_trigger_examples:
+  - |
+    Do NOT use this sub-skill for end-to-end functional flow (use
+    functional-flow in function-description) or interaction rules (use
+    interaction-rules).
+  - |
+    Do NOT use this sub-skill for business rules, data validation, or
+    permission rules (use function-description).
+  - |
+    Do NOT use this sub-skill before the functional-flow (功能流程) in
+    function-description is confirmed.
+  - |
+    Do NOT use this sub-skill for final visual design (use external
+    Figma integration via toolkit/visualization).
