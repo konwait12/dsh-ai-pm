@@ -90,7 +90,7 @@ def validate_records(req_dir: Path) -> dict:
                         repair_hint=f"在 {artifact.relative_to(req_dir)} 的 frontmatter 填写真实评审人姓名",
                         source_ref="constitution §6 人工闸门不可绕过 / contracts.md §Artifact States",
                     ))
-                expected = str(artifact.relative_to(req_dir))
+                expected = artifact.relative_to(req_dir).as_posix()
                 # --- 判定最新评审记录：优先投影缓存，回退 legacy glob-sort ---
                 newest_record_path: Path | None = None
                 if projection_avail:

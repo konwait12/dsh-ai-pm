@@ -216,7 +216,7 @@ class TestAuditLog(unittest.TestCase):
         for action in ("verify", "replay", "causality"):
             cp = subprocess.run(
                 [sys.executable, script, str(self.req), action, "--json"],
-                capture_output=True, text=True, check=False,
+                capture_output=True, text=True, check=False, encoding="utf-8", errors="replace",
             )
             self.assertEqual(cp.returncode, 0, f"{action} failed: {cp.stderr}")
             try:

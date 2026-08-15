@@ -37,6 +37,7 @@ def run_script_json(script: Path, target: Path) -> dict:
     result = subprocess.run(
         [sys.executable, str(script), str(target), "--json"],
         capture_output=True, text=True, check=False,
+        encoding="utf-8", errors="replace",
     )
     try:
         return json.loads(result.stdout)
@@ -52,6 +53,7 @@ def run_property_check(artifact: Path) -> dict:
     result = subprocess.run(
         [sys.executable, str(Path(__file__).parent / "property_check.py"), str(artifact), "--json"],
         capture_output=True, text=True, check=False,
+        encoding="utf-8", errors="replace",
     )
     try:
         return json.loads(result.stdout)
@@ -87,7 +89,7 @@ def check_issue_record(req_dir: Path) -> dict:
             "error": f"{ISSUE_RECORD_PATH} 不存在（每个案例必备的稳定产物，缺失即 gate 失败）",
         }
     result = run_script_json(ISSUE_RECORD_VALIDATOR, path)
-    result["path"] = str(path.relative_to(req_dir))
+    result["path"] = str(path.relative_to(req_dir).as_posix())
     result["ok"] = bool(result.get("ok"))
     return result
 
@@ -270,7 +272,7 @@ def write_change_record(req_dir: Path, item: dict, artifact: Path, from_status: 
         "\n".join([
             f"# Change Record: {item['id']} {from_status} → {to_status}", "",
             f"- work_item: {item['id']}",
-            f"- artifact: {artifact.relative_to(req_dir)}",
+            f"- artifact: {artifact.relative_to(req_dir).as_posix()}",
             f"- from_status: {from_status}",
             f"- to_status: {to_status}",
             f"- reason: {reason}",
@@ -339,7 +341,7 @@ def review(req_dir: Path, item: dict, decision: str, reviewer: str, reviewer_id:
     # matches and branch_validator flags it as CRITICAL.
     record_lines = [
         f"# Review: {item['name']}", "",
-        f"- work_item: {item['id']}", f"- artifact: {artifact.relative_to(req_dir)}",
+        f"- work_item: {item['id']}", f"- artifact: {artifact.relative_to(req_dir).as_posix()}",
         f"- artifact_version: {artifact_version}", f"- artifact_content_sha256: {artifact_hash}",
         f"- decision: {decision}", f"- reviewer: {reviewer}", f"- reviewer_id: {reviewer_id}",
         f"- reviewer_role: {reviewer_role}", f"- reviewed_at: {now}",
@@ -356,7 +358,7 @@ def review(req_dir: Path, item: dict, decision: str, reviewer: str, reviewer_id:
         audit_log.append_event(
             req_dir,
             event_type="review",
-            payload=str(record.relative_to(req_dir)),
+            payload=str(record.relative_to(req_dir).as_posix()),
             payload_sha256=hashlib.sha256(final_record_text.encode("utf-8")).hexdigest(),
             extra={
                 "work_item": item["id"],
@@ -381,10 +383,10 @@ def review(req_dir: Path, item: dict, decision: str, reviewer: str, reviewer_id:
     artifact_meta_for_anchor = read_frontmatter(artifact)
     hash_anchor.record_anchor(
         req_dir,
-        artifact=str(artifact.relative_to(req_dir)),
+        artifact=str(artifact.relative_to(req_dir).as_posix()),
         artifact_id=artifact_meta_for_anchor.get("artifact_id") or item["id"],
         reviewer=reviewer,
-        review_record=str(record.relative_to(req_dir)),
+        review_record=str(record.relative_to(req_dir).as_posix()),
         sha256=artifact_hash,
     )
     # B12: reverse transition audit trail — `changes` (→ draft) must leave a
@@ -481,7 +483,7 @@ def audit_backfill(req_dir: Path) -> int:
     pending: list[tuple[Path, str, datetime | None]] = []
     for pattern in ("review-*.md", "change-*.md"):
         for p in sorted(review_dir.glob(pattern)):
-            rel = str(p.relative_to(req_dir))
+            rel = str(p.relative_to(req_dir).as_posix())
             if rel in existing_refs:
                 skipped += 1
                 continue
@@ -496,7 +498,7 @@ def audit_backfill(req_dir: Path) -> int:
 
     pending.sort(key=lambda t: (t[2] is not None, t[2] or datetime.min, t[0].name))
     for p, text, rec_dt in pending:
-        rel = str(p.relative_to(req_dir))
+        rel = str(p.relative_to(req_dir).as_posix())
         extra = {
             "backfilled": True,
             "work_item": _match_field(text, r"(?m)^\s*-\s*work_item:\s*(\S+)"),
@@ -687,13 +689,13 @@ def main() -> int:
                 "after the earliest affected work item is re-confirmed.", "",
             ])
             record.write_text(record_body, encoding="utf-8")
-            results["change_record"] = str(record.relative_to(args.req_dir))
+            results["change_record"] = str(record.relative_to(args.req_dir).as_posix())
             # 事件溯源：reflow 后追加 reflow 审计事件
             try:
                 audit_log.append_event(
                     args.req_dir,
                     event_type="reflow",
-                    payload=str(record.relative_to(args.req_dir)),
+                    payload=str(record.relative_to(args.req_dir).as_posix()),
                     payload_sha256=__import__("hashlib").sha256(record_body.encode("utf-8")).hexdigest(),
                     extra={
                         "work_item": item["id"],

@@ -320,11 +320,11 @@ class WorkflowRuntimeTest(unittest.TestCase):
                 "--reviewer", "simulated", "--yes",
                 "--reviewer-id", "USR-001", "--reviewer-role", "business_owner",
             ]
-            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            result = subprocess.run(command, capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("status: draft", target.read_text(encoding="utf-8"))
             command[command.index("simulated")] = "Real Reviewer"
-            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            result = subprocess.run(command, capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("ready_for_human_review", result.stderr)
             self.assertIn("status: draft", target.read_text(encoding="utf-8"))
@@ -342,7 +342,7 @@ class WorkflowRuntimeTest(unittest.TestCase):
                 "--reviewer", "Real Reviewer", "--comments", "目标仍不清楚",
                 "--reason", "目标仍不清楚，打回修改",
                 "--reviewer-id", "USR-001", "--reviewer-role", "business_owner",
-            ], capture_output=True, text=True, check=False)
+            ], capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("status: draft", target.read_text(encoding="utf-8"))
             self.assertEqual(len(list((req / "99-review").glob("review-*.md"))), 1)
@@ -371,7 +371,7 @@ class WorkflowRuntimeTest(unittest.TestCase):
                 "--work-item", "project-background-goal", "--decision", "changes",
                 "--reviewer", "Real Reviewer", "--comments", "目标仍不清楚",
                 "--reviewer-id", "USR-001", "--reviewer-role", "business_owner",
-            ], capture_output=True, text=True, check=False)
+            ], capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("--reason", result.stderr)
             self.assertIn("status: confirmed", target.read_text(encoding="utf-8"))
@@ -399,7 +399,7 @@ class WorkflowRuntimeTest(unittest.TestCase):
                 "--work-item", "project-background-goal", "--decision", "approve",
                 "--reviewer", "Real Reviewer", "--reviewer-id", "USR-001",
                 "--reviewer-role", "business_owner",
-            ], capture_output=True, text=True, check=False)
+            ], capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
             record = next((req / "99-review").glob("review-*.md")).read_text(encoding="utf-8")
             self.assertIn("artifact_version:", record)
@@ -409,12 +409,12 @@ class WorkflowRuntimeTest(unittest.TestCase):
             self.assertIn("status: confirmed", target.read_text(encoding="utf-8"))
             validated = subprocess.run([
                 sys.executable, str(SCRIPTS / "branch_validator.py"), str(req), "--json",
-            ], capture_output=True, text=True, check=False)
+            ], capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertEqual(validated.returncode, 0, validated.stdout)
             target.write_text(target.read_text(encoding="utf-8") + "\nsubstantive change\n", encoding="utf-8")
             validated = subprocess.run([
                 sys.executable, str(SCRIPTS / "branch_validator.py"), str(req), "--json",
-            ], capture_output=True, text=True, check=False)
+            ], capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
             self.assertNotEqual(validated.returncode, 0)
             self.assertIn("differs from its ReviewRecord hash", validated.stdout)
 

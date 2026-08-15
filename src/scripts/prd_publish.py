@@ -32,7 +32,8 @@ LOG_PATH = Path('99-review/飞书发布日志.md')
 
 def run_lark(args: list[str], input_text: str | None = None) -> dict:
     proc = subprocess.run(['lark-cli', *args], input=input_text,
-                          capture_output=True, text=True, timeout=120)
+                          capture_output=True, text=True, timeout=120,
+                          encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise RuntimeError(f'lark-cli 失败: {proc.stderr[:500]}')
     try:

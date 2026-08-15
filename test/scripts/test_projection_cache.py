@@ -79,7 +79,10 @@ class ProjectionCacheTest(unittest.TestCase):
         )
         bucket = projection_cache.latest_review_for(self.req, "project-background-goal")
         self.assertIsNotNone(bucket)
-        self.assertEqual(bucket["latest_review_record"], "99-review/review-fake-2026-08-14.md")
+        self.assertEqual(
+            bucket["latest_review_record"],
+            str(Path("99-review") / "review-fake-2026-08-14.md"),
+        )
         self.assertEqual(bucket["latest_review_decision"], "approve")
 
     def test_legacy_fallback_flag(self) -> None:

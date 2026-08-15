@@ -56,7 +56,7 @@ class CrossSkillPipelineTest(unittest.TestCase):
             (req / "001-business-requirements").mkdir(parents=True)
             result = subprocess.run(
                 [sys.executable, str(SCRIPTS / "orchestrator.py"), str(req), "--json"],
-                capture_output=True, text=True, check=True,
+                capture_output=True, text=True, check=True, encoding="utf-8", errors="replace",
             )
             payload = json.loads(result.stdout)
             self.assertEqual(payload["next_work_item"], FIVE_MAIN_ITEMS[0])
@@ -140,7 +140,7 @@ class CrossSkillPipelineTest(unittest.TestCase):
             result = subprocess.run(
                 [sys.executable, str(SCRIPTS / "dor_check.py"), str(req), "--work-item",
                  "project-background-goal", "--json"],
-                capture_output=True, text=True, check=False,
+                capture_output=True, text=True, check=False, encoding="utf-8", errors="replace",
             )
             payload = json.loads(result.stdout)
             gate = next((c for c in payload[0]["checks"]
@@ -157,7 +157,7 @@ class CrossSkillPipelineTest(unittest.TestCase):
             (req / "001-business-requirements").mkdir(parents=True)
             result = subprocess.run(
                 [sys.executable, str(SCRIPTS / "orchestrator.py"), str(req), "--dry-run", "--json"],
-                capture_output=True, text=True, check=True,
+                capture_output=True, text=True, check=True, encoding="utf-8", errors="replace",
             )
             payload = json.loads(result.stdout)
             self.assertEqual(payload["mode"], "dry-run")

@@ -62,7 +62,7 @@ def collect(req_dir: Path) -> tuple[dict[str, set[str]], set[tuple[str, str]], d
                     row_ids[kind] = found
                     ids[kind].update(found)
                     for identifier in found:
-                        locations.setdefault(identifier, f"{artifact.relative_to(req_dir)}:{line_no}")
+                        locations.setdefault(identifier, f"{artifact.relative_to(req_dir).as_posix()}:{line_no}")
                 for downstream, upstream in REQUIRED_EDGES + CROSS_LEVEL_EDGES:
                     for child in row_ids[downstream]:
                         for parent in row_ids[upstream]:
@@ -75,7 +75,7 @@ def collect(req_dir: Path) -> tuple[dict[str, set[str]], set[tuple[str, str]], d
                     line_ids[kind] = found
                     ids[kind].update(found)
                     for identifier in found:
-                        locations.setdefault(identifier, f"{artifact.relative_to(req_dir)}:{line_no}")
+                        locations.setdefault(identifier, f"{artifact.relative_to(req_dir).as_posix()}:{line_no}")
                 for downstream, upstream in REQUIRED_EDGES + CROSS_LEVEL_EDGES:
                     for child in line_ids[downstream]:
                         for parent in line_ids[upstream]:

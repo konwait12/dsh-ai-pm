@@ -141,6 +141,7 @@ def run_validator(item: dict, artifact: Path) -> tuple[bool, str]:
     result = subprocess.run(
         [sys.executable, str(validator), str(artifact), "--json"],
         capture_output=True, text=True, check=False,
+        encoding="utf-8", errors="replace",
     )
     try:
         payload = json.loads(result.stdout)

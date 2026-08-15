@@ -190,7 +190,9 @@ def verify_artifact_anchored(req_dir: Path, artifact: str, expected_sha256: str,
     mismatches: list[dict] = []
     referenced = False
     for row in rows:
-        if row.get("artifact") != artifact:
+        # Anchor rows record POSIX-style relative paths; normalize the caller's
+        # artifact path so Windows backslashes do not break the match.
+        if (row.get("artifact") or "") != artifact.replace("\\", "/"):
             continue
         referenced = True
         sha_match = row.get("sha256") == expected_sha256

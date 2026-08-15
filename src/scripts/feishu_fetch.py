@@ -49,7 +49,8 @@ def run_lark_fetch(token: str) -> dict:
     """调用 lark-cli 读取文档，返回解析后的 JSON。"""
     cmd = ['lark-cli', 'docs', '+fetch', '--doc', token,
            '--doc-format', 'markdown', '--scope', 'full']
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120,
+                          encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise RuntimeError(f'lark-cli 失败: {proc.stderr[:500]}')
     try:
@@ -213,7 +214,7 @@ def main() -> int:
             out_rel = Path(out.name)
         register.parent.mkdir(parents=True, exist_ok=True)
         update_source_register(register, args.src_id, args.src_title, token,
-                               str(out_rel), args.feishu_domain)
+                               out_rel.as_posix(), args.feishu_domain)
         print(f'✅ source-register 已更新：{register}')
     return 0
 

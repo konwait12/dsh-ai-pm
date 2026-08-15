@@ -25,6 +25,7 @@ class FeishuToolTest(unittest.TestCase):
             capture_output=True,
             text=True,
             check=True,
+            encoding="utf-8", errors="replace",
         )
         for option in ('--feishu-domain', '--register-dir'):
             self.assertIn(option, result.stdout)
@@ -127,6 +128,7 @@ class FeishuToolTest(unittest.TestCase):
             capture_output=True,
             text=True,
             check=True,
+            encoding="utf-8", errors="replace",
         )
         for option in (
             '--feishu-domain', '--log-path', '--title-template',
